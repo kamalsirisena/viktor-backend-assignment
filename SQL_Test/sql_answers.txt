@@ -1,0 +1,37 @@
+SQL Answers – DB and SQL Assignment
+----------------------------------------
+
+Below are the SQL queries for the three questions.  
+Queries are written in generic SQL so they work in most database systems.
+
+-------------------------------------------------------------
+1. Get the names of the running Projects
+-------------------------------------------------------------
+
+SELECT name
+FROM Project
+WHERE status = 'running';
+
+
+-------------------------------------------------------------
+2. Get the number of finished Projects per Company
+-------------------------------------------------------------
+
+SELECT c.name AS company_name,
+       COUNT(p.id) AS finished_projects
+FROM Company c
+JOIN Project p ON p.company_id = c.id
+WHERE p.status = 'finished'
+GROUP BY c.name;
+
+
+-------------------------------------------------------------
+3. Get the Company Names that have 2 or more different Projects
+   with the same Name
+-------------------------------------------------------------
+
+SELECT c.name
+FROM Company c
+JOIN Project p ON p.company_id = c.id
+GROUP BY c.name, p.name
+HAVING COUNT(*) >= 2;

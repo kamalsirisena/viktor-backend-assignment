@@ -1,0 +1,185 @@
+API Design – Digital Library Processing
+---------------------------------------
+
+This document describes a set of REST API endpoints for managing digital library books and
+processing them to extract linguistic insights. The focus is on clean, simple design with 
+clear request/response behavior.
+
+---------------------------------------------------------
+1. Create a Book
+---------------------------------------------------------
+
+POST /books/
+
+Create a new book record.
+
+Request body (JSON):
+{
+  "name": "Book title",
+  "author": "Author name",
+  "publisher": "Publisher name",
+  "publicationDate": "2024-01-01",
+  "ISBN": "978-1234567890",
+  "coverPhoto": null
+}
+
+Responses:
+201 Created – Book created successfully. Returns created book.
+400 Bad Request – Validation error.
+
+
+---------------------------------------------------------
+2. Update a Book’s Cover Photo
+---------------------------------------------------------
+
+PUT /books/{id}/cover/
+
+Upload or replace a book's cover image.
+
+Request type: multipart/form-data
+Fields:
+- coverPhoto (image file)
+
+Responses:
+200 OK – Cover updated.
+400 Bad Request – Invalid file or missing field.
+404 Not Found – Book not found.
+
+
+---------------------------------------------------------
+3. List Books (pagination, filtering, sorting)
+---------------------------------------------------------
+
+GET /books/
+
+Retrieve a paginated list of books. Supports filtering on any field and sorting.
+
+Query parameters:
+Filtering:
+- name
+- author
+- publisher
+- publicationDate
+- ISBN
+
+Sorting:
+- ordering=name
+- ordering=-publicationDate
+- ordering=author,-name
+
+Pagination:
+- page
+- page_size
+
+Example:
+GET /books/?author=John&ordering=-publicationDate&page=1&page_size=20
+
+Responses:
+200 OK
+{
+  "count": 120,
+  "next": "...",
+  "previous": null,
+  "results": [
+    {
+      "id": 5,
+      "name": "Example Book",
+      "author": "John Doe",
+      "publisher": "XYZ Press",
+      "publicationDate": "2023-05-10",
+      "ISBN": "1234567890",
+      "coverPhoto": "/media/covers/5.jpg"
+    }
+  ]
+}
+
+
+---------------------------------------------------------
+4. Upload a Book’s Content File
+---------------------------------------------------------
+
+POST /books/{id}/content/
+
+Upload the full content of a book (PDF, text file, etc.).
+
+Request type: multipart/form-data
+Field:
+- file (required)
+
+Responses:
+200 OK – File uploaded.
+400 Bad Request – Invalid or missing file.
+404 Not Found – Book not found.
+
+
+---------------------------------------------------------
+5. Start Book Processing (Non-Blocking)
+---------------------------------------------------------
+
+POST /books/{id}/process/
+
+Start an asynchronous background task to process the book and extract insights.
+Returns immediately (non-blocking).
+
+Responses:
+202 Accepted
+{
+  "message": "Processing started",
+  "task_id": "abc123"
+}
+
+404 Not Found – Book not found.
+
+
+---------------------------------------------------------
+6. Check Processing Status
+---------------------------------------------------------
+
+GET /processing/{task_id}/
+
+Check the status of a background processing task.
+
+Responses:
+200 OK
+{
+  "task_id": "abc123",
+  "status": "running",
+  "progress": 40
+}
+
+404 Not Found – Invalid task ID.
+
+
+---------------------------------------------------------
+7. Retrieve Processing Results
+---------------------------------------------------------
+
+GET /books/{id}/insights/
+
+Retrieve extracted insights for a processed book.
+
+Responses:
+200 OK
+{
+  "bookId": 5,
+  "wordCount": 45321,
+  "topKeywords": ["magic", "forest", "journey"],
+  "language": "English"
+}
+
+202 Accepted – Processing still running.
+404 Not Found – Book not found or no insights available.
+
+
+---------------------------------------------------------
+Summary of Endpoints
+---------------------------------------------------------
+
+Method | Endpoint                 | Description
+POST   | /books/                  | Create a book
+PUT    | /books/{id}/cover/       | Update cover photo
+GET    | /books/                  | List books (filter/sort/paginate)
+POST   | /books/{id}/content/     | Upload content file
+POST   | /books/{id}/process/     | Start processing
+GET    | /processing/{task_id}/   | Task status
+GET    | /books/{id}/insights/    | Retrieve insights
