@@ -1,16 +1,21 @@
 SQL Answers – DB and SQL Assignment
-----------------------------------------
+-----------------------------------
 
-Below are the SQL queries for the three questions.  
-Queries are written in generic SQL so they work in most database systems.
+Schema:
+Company (id, name)
+Employee (id, name, company_id, email, is_active)
+Project (id, name, status, employee_id, starts_at, finish_at)
+
+Below are the SQL queries for the three questions, considering the relationship:
+Company → Employee → Project.
 
 -------------------------------------------------------------
 1. Get the names of the running Projects
 -------------------------------------------------------------
 
-SELECT name
-FROM Project
-WHERE status = 'running';
+SELECT p.name
+FROM Project p
+WHERE p.status = 'running';
 
 
 -------------------------------------------------------------
@@ -20,18 +25,20 @@ WHERE status = 'running';
 SELECT c.name AS company_name,
        COUNT(p.id) AS finished_projects
 FROM Company c
-JOIN Project p ON p.company_id = c.id
+JOIN Employee e ON e.company_id = c.id
+JOIN Project p ON p.employee_id = e.id
 WHERE p.status = 'finished'
 GROUP BY c.name;
 
 
 -------------------------------------------------------------
-3. Get the Company Names that have 2 or more different Projects
-   with the same Name
+3. Get the Company Names that have 2 or more Different Projects
+   with the Same Name
 -------------------------------------------------------------
 
 SELECT c.name
 FROM Company c
-JOIN Project p ON p.company_id = c.id
+JOIN Employee e ON e.company_id = c.id
+JOIN Project p ON p.employee_id = e.id
 GROUP BY c.name, p.name
 HAVING COUNT(*) >= 2;
